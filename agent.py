@@ -35,7 +35,7 @@ def pobierz_wiadomosci_i_smc(ticker):
     return " | ".join(naglowki) if naglowki else "Brak", " | ".join(ruch_duzych_graczy) if ruch_duzych_graczy else "Brak"
 
 def pobierz_dane_krypto(symbol):
-    exchange = ccxt.binance()
+    exchange = ccxt.kraken()
     bars = exchange.fetch_ohlcv(symbol, timeframe='1h', limit=100)
     df = pd.DataFrame(bars, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
     return oblicz_wskaźniki(df)
