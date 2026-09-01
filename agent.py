@@ -103,3 +103,6 @@ def uruchom_skaner():
 
 if __name__ == "__main__":
     uruchom_skaner()
+
+    if __name__ == "__main__":
+    main()
