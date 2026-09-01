@@ -137,8 +137,8 @@ def zapytaj_ai(ticker, cena, rsi, ema, newsy, ruchy_graczy):
     
     try:
         response = groq_client.chat.completions.create(
-            # TUTAJ ZMIENIASZ NAZWĘ MODELU:
-            model="llama-3.3-70b-versatile",
+            # PODMIEŃ NA TEN MODEL:
+            model="llama3-8b-8192",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
             response_format={"type": "json_object"}
