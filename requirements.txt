@@ -1,0 +1,8 @@
+yfinance
+ccxt
+groq
+supabase
+requests
+pandas
+ta
+feedparser
