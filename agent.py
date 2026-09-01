@@ -90,19 +90,18 @@ def uruchom_skaner():
             if szansa:
                 newsy, ruchy_graczy = pobierz_wiadomosci_i_smc(ticker)
                 analiza = zapytaj_ai(ticker, cena, rsi, ema, newsy, ruchy_graczy)
-                if analiza.get("decyzja") == "KUP" and analiza.get("pewnosc", 0) >= 80:
-                    supabase.table("signals").insert({
-                        "ticker": ticker, "action": "KUP", "confidence": analiza["pewnosc"],
-                        "entry_price": cena, "stop_loss": analiza.get("stop_loss"),
-                        "take_profit": analiza.get("take_profit"),
-                        "reasoning": f"[{analiza.get('duzi_gracze_info')}] {analiza.get('uzasadnienie')}"
-                    }).execute()
-                    wyslij_powiadomienie(ticker, analiza["pewnosc"], cena, analiza.get("stop_loss"), analiza.get("take_profit"), analiza.get("uzasadnienie"), analiza.get("duzi_gracze_info"))
+if analiza.get("decyzja") == "KUP" and analiza.get("pewnosc", 0) >= 80:
+                supabase.table("signals").insert({
+                    "ticker": ticker,
+                    "confidence": analiza["pewnosc"],
+                    "entry_price": cena,
+                    "stop_loss": analiza.get("stop_loss"),
+                    "take_profit": analiza.get("take_profit"),
+                    "reasoning": f"[{analiza.get('duzi_gracze_info')}] {analiza.get('uzasadnienie')}"
+                }).execute()
+                wyslij_powiadomienie(ticker, analiza["pewnosc"], cena, analiza.get("stop_loss"), analiza.get("take_profit"), analiza.get("uzasadnienie"), analiza.get("duzi_gracze_info"))
         except Exception as e:
             print(f"Błąd {ticker}: {e}")
 
 if __name__ == "__main__":
     uruchom_skaner()
-
-    if __name__ == "__main__":
-    main()
