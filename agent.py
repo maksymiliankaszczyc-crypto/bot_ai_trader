@@ -31,7 +31,7 @@ LISTA_AKCJI = [
     'INTC', 'QCOM', 'ARM', 'SMCI', 'NFLX', 'CRM', 'ORCL', 'IBM', 'CSCO', 'UBER',
     
     # Finanse, Krypto-powiązane & Przemysł
-    'JPM', 'BAC', 'V', 'MA', 'COIN', 'MSTR', 'DIS', 'PYPL', 'SQ',
+    'JPM', 'BAC', 'V', 'MA', 'COIN', 'MSTR', 'DIS', 'PYPL',
     
     # ETF-y / Surowce / Sektory (Złoto, Ropa, S&P500)
     'GLD', 'SLV', 'USO', 'UNG', 'SPY', 'QQQ', 'IWM',
@@ -44,7 +44,7 @@ LISTA_AKCJI = [
 LISTA_KRYPTO = [
     # Top L1 / L2
     'BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD', 'ADA/USD', 'AVAX/USD',
-    'DOT/USD', 'LINK/USD', 'MATIC/USD', 'NEAR/USD', 'APT/USD', 'SUI/USD',
+    'DOT/USD', 'LINK/USD', 'POL/USD', 'NEAR/USD', 'APT/USD', 'SUI/USD',
     'OP/USD', 'ARB/USD', 'ATOM/USD', 'LTC/USD', 'BCH/USD',
     
     # Sektor AI & Meme / DeFi
