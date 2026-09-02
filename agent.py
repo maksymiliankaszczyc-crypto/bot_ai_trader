@@ -88,10 +88,10 @@ OBV_SMA_OKRES = 20
 MIN_SWIEC = max(EMA_WOLNA_OKRES, ADX_OKRES, BOLLINGER_OKRES) + 20
 
 # Próg "technical score" (0-100) poniżej którego walor NIE trafia do AI.
-PROG_TECHNICZNY = int(os.environ.get("PROG_TECHNICZNY", "55"))
+PROG_TECHNICZNY = int(os.environ.get("PROG_TECHNICZNY", "1"))
 
 # Próg pewności AI (0-100), od którego generujemy sygnał KUP
-PROG_PEWNOSCI_AI = int(os.environ.get("PROG_PEWNOSCI_AI", "80"))
+PROG_PEWNOSCI_AI = int(os.environ.get("PROG_PEWNOSCI_AI", "1"))
 
 # ==========================================
 # 3. LISTY WALORÓW DO SKANOWANIA
