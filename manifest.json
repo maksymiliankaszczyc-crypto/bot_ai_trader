@@ -1,0 +1,25 @@
+{
+  "name": "M.A.R.K.E.T. Signal Intelligence",
+  "short_name": "M.A.R.K.E.T.",
+  "description": "Panel sygnałów tradingowych generowanych przez bota AI",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050208",
+  "theme_color": "#a855f7",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
