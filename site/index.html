@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>M.A.R.K.E.T. — Signal Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- PWA — pozwala "zainstalować" stronę jako aplikację na telefonie -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#a855f7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="M.A.R.K.E.T.">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+</head>
+<body>
+<script>
+  // ==== TU WKLEJ SWOJE DANE (klucz "anon public", NIGDY "service_role"!) ====
+  const SUPABASE_URL = "https://TWOJ-PROJEKT.supabase.co";
+  const SUPABASE_ANON_KEY = "TWOJ_ANON_PUBLIC_KEY";
+  const TABLE_NAME = "signals";
+  const ODSWIEZANIE_MS = 15000;
+</script>
+
+<style>
+  :root{
+    --bg: #050208;
+    --bg-panel: rgba(18, 8, 28, 0.72);
+    --grid: rgba(168, 85, 247, 0.07);
+    --violet: #a855f7;
+    --violet-bright: #c084fc;
+    --violet-dim: #5b2a8c;
+    --magenta: #e879f9;
+    --amber: #ffb454;
+    --red: #ff5470;
+    --text: #ecdcff;
+    --text-dim: #8a76a3;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Consolas", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-position: center;
+  }
+
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.8) 100%);
+    z-index: 5;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    left: 0; right: 0; height: 2px; top: 0;
+    background: linear-gradient(90deg, transparent, var(--violet-bright), transparent);
+    opacity: 0.55;
+    animation: scan 6s linear infinite;
+    z-index: 6;
+    pointer-events: none;
+  }
+
+  @keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    5% { opacity: 0.6; }
+    95% { opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  .app {
+    position: relative;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 18px 22px;
+    gap: 14px;
+    z-index: 1;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--violet-dim);
+    padding-bottom: 12px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 14px; }
+
+  .brand-ring {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--violet-bright);
+    position: relative;
+    box-shadow: 0 0 16px rgba(192,132,252,0.55);
+    animation: spin 8s linear infinite;
+  }
+  .brand-ring::before {
+    content: "";
+    position: absolute; inset: 6px;
+    border-radius: 50%;
+    border: 1px solid var(--violet-dim);
+    border-top-color: var(--violet-bright);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .brand-text h1 {
+    margin: 0; font-size: 19px; letter-spacing: 3px;
+    color: var(--violet-bright);
+    text-shadow: 0 0 12px rgba(192,132,252,0.5);
+  }
+  .brand-text p {
+    margin: 2px 0 0; font-size: 11px; color: var(--text-dim); letter-spacing: 2px;
+  }
+
+  .status-cluster { display: flex; gap: 22px; font-size: 11px; letter-spacing: 1px; }
+  .status-item { text-align: right; color: var(--text-dim); }
+  .status-item strong { display: block; font-size: 13px; color: var(--text); letter-spacing: 1px; }
+  .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 6px; box-shadow: 0 0 8px currentColor;
+  }
+  .dot.online { background: var(--violet-bright); color: var(--violet-bright); animation: pulse 2s ease-in-out infinite; }
+  .dot.offline { background: var(--red); color: var(--red); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  main {
+    display: grid;
+    grid-template-columns: 250px 1fr 280px;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--violet-dim);
+    position: relative;
+    padding: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .panel::before, .panel::after {
+    content: "";
+    position: absolute; width: 14px; height: 14px;
+    border: 2px solid var(--violet-bright);
+  }
+  .panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .panel h2 {
+    margin: 0 0 12px; font-size: 11px; letter-spacing: 3px;
+    color: var(--violet-bright); font-weight: 600;
+  }
+
+  .stat-block { margin-bottom: 18px; }
+  .stat-value {
+    font-size: 28px; color: var(--violet-bright);
+    text-shadow: 0 0 12px rgba(192,132,252,0.45); line-height: 1;
+  }
+  .stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; margin-top: 4px; }
+
+  .conf-bar-track { height: 4px; background: rgba(255,255,255,0.07); margin-top: 10px; }
+  .conf-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet-dim), var(--magenta));
+    box-shadow: 0 0 8px var(--violet-bright);
+    transition: width 0.6s ease;
+  }
+
+  .feed-panel { padding: 0; }
+  .feed-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--violet-dim); }
+  .feed-list { overflow-y: auto; flex: 1; padding: 8px 12px; }
+  .feed-list::-webkit-scrollbar { width: 6px; }
+  .feed-list::-webkit-scrollbar-thumb { background: var(--violet-dim); }
+
+  .signal-row {
+    display: grid;
+    grid-template-columns: 88px 1fr auto 64px 60px 128px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(168,85,247,0.1);
+    font-size: 12px;
+    cursor: pointer;
+    animation: rowIn 0.4s ease both;
+  }
+  .signal-row:hover { background: rgba(168,85,247,0.06); }
+  @keyframes rowIn { from { opacity: 0; transform: translateX(-6px);} to { opacity: 1; transform: translateX(0);} }
+
+  .ticker-tag { color: var(--violet-bright); font-weight: 700; letter-spacing: 1px; }
+  .reasoning-text { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .decision-badge { font-size: 10px; letter-spacing: 1.5px; padding: 3px 8px; border: 1px solid currentColor; }
+  .decision-badge.kup { color: var(--violet-bright); }
+  .decision-badge.czekaj { color: var(--text-dim); }
+  .decision-badge.blad { color: var(--red); }
+
+  .score-num { color: var(--magenta); text-align: right; }
+  .confidence-num { color: var(--amber); text-align: right; }
+  .timestamp { color: var(--text-dim); font-size: 10px; text-align: right; }
+
+  .empty-state { text-align: center; color: var(--text-dim); padding: 60px 20px; font-size: 12px; letter-spacing: 1px; }
+
+  .detail-row {
+    display: flex; justify-content: space-between; font-size: 12px;
+    padding: 8px 0; border-bottom: 1px dashed rgba(168,85,247,0.18);
+  }
+  .detail-row span:first-child { color: var(--text-dim); }
+  .detail-row span:last-child { color: var(--text); }
+  .detail-empty { color: var(--text-dim); font-size: 11px; line-height: 1.6; }
+
+  .gauge-wrap { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+  .gauge {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: conic-gradient(var(--violet-bright) calc(var(--pct, 0) * 1%), rgba(255,255,255,0.08) 0);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .gauge::before {
+    content: attr(data-val);
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--violet-bright);
+  }
+
+  footer {
+    border-top: 1px solid var(--violet-dim);
+    padding-top: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .ticker-tape { display: inline-block; padding-left: 100%; animation: tape 30s linear infinite; }
+  @keyframes tape { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+  .ticker-tape span { margin-right: 40px; }
+  .ticker-tape .up { color: var(--violet-bright); }
+
+  #boot {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 12px; letter-spacing: 3px;
+    color: var(--violet-bright);
+    animation: bootOut 0.6s ease 1.6s forwards;
+  }
+  @keyframes bootOut { to { opacity: 0; visibility: hidden; } }
+  #boot .ring {
+    width: 60px; height: 60px; border-radius: 50%;
+    border: 2px solid var(--violet-dim);
+    border-top-color: var(--violet-bright);
+    animation: spin 1s linear infinite;
+  }
+
+  /* ============================================================
+     WERSJA MOBILNA — czystszy, uproszczony układ zamiast pełnego HUD
+     ============================================================ */
+  @media (max-width: 900px) {
+    .app { padding: 12px; gap: 10px; }
+
+    main {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+      overflow-y: auto;
+    }
+
+    .panel { min-height: auto; }
+    .feed-panel { order: 1; min-height: 320px; }
+    .panel:has(#stat-total) { order: 2; }
+    #detail-content { order: 3; }
+
+    .status-cluster { gap: 12px; }
+    .status-item:nth-child(2) { display: none; } /* ukryj "aktualizacja" na małym ekranie */
+
+    .brand-text p { display: none; } /* podtytuł zajmuje za dużo miejsca na telefonie */
+  }
+
+  @media (max-width: 600px) {
+    /* Na telefonie rezygnujemy z efektów HUD na rzecz czytelności */
+    body::after { display: none; }
+    .panel::before, .panel::after { display: none; }
+    .brand-ring { animation: none; }
+
+    .signal-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      padding: 12px 10px;
+    }
+    .reasoning-text {
+      white-space: normal;
+      width: 100%;
+      order: 5;
+      font-size: 11px;
+    }
+    .ticker-tag { font-size: 14px; }
+
+    .stat-block { margin-bottom: 12px; }
+    .stat-value { font-size: 22px; }
+
+    header { flex-wrap: wrap; gap: 8px; }
+    .brand-text h1 { font-size: 15px; letter-spacing: 2px; }
+  }
+</style>
+
+<div id="boot">
+  <div class="ring"></div>
+  <div>INICJALIZACJA SYSTEMU</div>
+</div>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="brand-ring"></div>
+      <div class="brand-text">
+        <h1>M.A.R.K.E.T.</h1>
+        <p>MARKET ANALYSIS &amp; REALTIME KUP/CZEKAJ EVALUATION TERMINAL</p>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <div class="status-item">
+        <span><span class="dot" id="conn-dot"></span>POŁĄCZENIE</span>
+        <strong id="conn-text">ŁĄCZENIE...</strong>
+      </div>
+      <div class="status-item">
+        AKTUALIZACJA
+        <strong id="last-update">—</strong>
+      </div>
+      <div class="status-item">
+        CZAS
+        <strong id="clock">00:00:00</strong>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>PRZEGLĄD</h2>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">SYGNAŁÓW ZAREJESTROWANYCH</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-today">0</div>
+        <div class="stat-label">DZISIAJ</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-avg-conf">0%</div>
+        <div class="stat-label">ŚREDNIA PEWNOŚĆ AI</div>
+        <div class="conf-bar-track"><div class="conf-bar-fill" id="conf-bar" style="width:0%"></div></div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-top-ticker">—</div>
+        <div class="stat-label">NAJCZĘSTSZY WALOR</div>
+      </div>
+    </section>
+
+    <section class="panel feed-panel">
+      <div class="feed-header">
+        <h2 style="margin:0;">STRUMIEŃ SYGNAŁÓW</h2>
+      </div>
+      <div class="feed-list" id="feed-list">
+        <div class="empty-state">OCZEKIWANIE NA DANE Z SUPABASE…</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>SZCZEGÓŁY</h2>
+      <div id="detail-content">
+        <p class="detail-empty">Kliknij sygnał w strumieniu po lewej, aby zobaczyć pełną analizę AI oraz wynik techniczny.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="ticker-tape" id="ticker-tape">ŁADOWANIE DANYCH…</div>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  let client = null;
+  let sygnaly = [];
+
+  function zegarek() {
+    const el = document.getElementById('clock');
+    setInterval(() => { el.textContent = new Date().toLocaleTimeString('pl-PL'); }, 1000);
+  }
+
+  function ustawStatus(polaczono) {
+    const dot = document.getElementById('conn-dot');
+    const text = document.getElementById('conn-text');
+    if (polaczono) { dot.className = 'dot online'; text.textContent = 'AKTYWNE'; }
+    else { dot.className = 'dot offline'; text.textContent = 'BRAK'; }
+  }
+
+  function formatujCzas(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function klasaDecyzji(decyzja) {
+    if (decyzja === 'KUP') return 'kup';
+    if (decyzja === 'BLAD_API') return 'blad';
+    return 'czekaj';
+  }
+
+  function przeliczStatystyki() {
+    document.getElementById('stat-total').textContent = sygnaly.length;
+
+    const dzis = new Date().toDateString();
+    const dzisiejsze = sygnaly.filter(s => s.created_at && new Date(s.created_at).toDateString() === dzis);
+    document.getElementById('stat-today').textContent = dzisiejsze.length;
+
+    if (sygnaly.length) {
+      const suma = sygnaly.reduce((acc, s) => acc + (Number(s.confidence) || 0), 0);
+      const srednia = Math.round(suma / sygnaly.length);
+      document.getElementById('stat-avg-conf').textContent = srednia + '%';
+      document.getElementById('conf-bar').style.width = srednia + '%';
+
+      const liczniki = {};
+      sygnaly.forEach(s => { liczniki[s.ticker] = (liczniki[s.ticker] || 0) + 1; });
+      const top = Object.entries(liczniki).sort((a,b) => b[1]-a[1])[0];
+      document.getElementById('stat-top-ticker').textContent = top ? top[0] : '—';
+    }
+  }
+
+  function renderujFeed() {
+    const kontener = document.getElementById('feed-list');
+    if (!sygnaly.length) {
+      kontener.innerHTML = '<div class="empty-state">BRAK SYGNAŁÓW W BAZIE DANYCH</div>';
+      return;
+    }
+    kontener.innerHTML = '';
+    sygnaly.forEach((s) => {
+      const row = document.createElement('div');
+      row.className = 'signal-row';
+      row.innerHTML = `
+        <span class="ticker-tag">${s.ticker || '—'}</span>
+        <span class="reasoning-text">${s.reasoning || 'brak opisu'}</span>
+        <span class="decision-badge ${klasaDecyzji(s.decyzja || 'KUP')}">${s.decyzja || 'KUP'}</span>
+        <span class="score-num">${s.technical_score != null ? s.technical_score : '—'}</span>
+        <span class="confidence-num">${s.confidence != null ? s.confidence + '%' : '—'}</span>
+        <span class="timestamp">${formatujCzas(s.created_at)}</span>
+      `;
+      row.addEventListener('click', () => pokazSzczegoly(s));
+      kontener.appendChild(row);
+    });
+  }
+
+  function pokazSzczegoly(s) {
+    const el = document.getElementById('detail-content');
+    const score = s.technical_score != null ? s.technical_score : 0;
+    el.innerHTML = `
+      <div class="gauge-wrap">
+        <div class="gauge" style="--pct:${score}" data-val="${score}"></div>
+        <div>
+          <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;">WYNIK TECHNICZNY</div>
+          <div style="font-size:13px;color:var(--violet-bright);">${s.ticker || '—'}</div>
+        </div>
+      </div>
+      <div class="detail-row"><span>PEWNOŚĆ AI</span><span>${s.confidence != null ? s.confidence + '%' : '—'}</span></div>
+      <div class="detail-row"><span>ENTRY</span><span>${s.entry_price ?? '—'}</span></div>
+      <div class="detail-row"><span>STOP LOSS</span><span>${s.stop_loss ?? '—'}</span></div>
+      <div class="detail-row"><span>TAKE PROFIT</span><span>${s.take_profit ?? '—'}</span></div>
+      <div class="detail-row"><span>CZAS</span><span>${formatujCzas(s.created_at)}</span></div>
+      <p style="margin-top:14px; font-size:12px; line-height:1.6; color:var(--text);">${s.reasoning || 'Brak analizy tekstowej.'}</p>
+    `;
+  }
+
+  function renderujTasme() {
+    const tape = document.getElementById('ticker-tape');
+    if (!sygnaly.length) { tape.textContent = 'BRAK DANYCH'; return; }
+    tape.innerHTML = sygnaly.slice(0, 25).map(s =>
+      `<span class="${s.decyzja === 'KUP' ? 'up' : ''}">${s.ticker} · ${s.decyzja || 'KUP'} · wynik ${s.technical_score ?? '—'} · pewność ${s.confidence != null ? s.confidence+'%' : '—'}</span>`
+    ).join('');
+  }
+
+  async function pobierzDane() {
+    if (!client) return;
+    try {
+      const { data, error } = await client
+        .from(TABLE_NAME)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error) throw error;
+
+      sygnaly = data || [];
+      renderujFeed();
+      renderujTasme();
+      przeliczStatystyki();
+      document.getElementById('last-update').textContent = new Date().toLocaleTimeString('pl-PL');
+      ustawStatus(true);
+    } catch (e) {
+      console.error('Błąd pobierania danych z Supabase:', e);
+      ustawStatus(false);
+    }
+  }
+
+  function inicjalizuj() {
+    if (!SUPABASE_URL || SUPABASE_URL.includes('TWOJ-PROJEKT') || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('TWOJ_ANON')) {
+      document.getElementById('feed-list').innerHTML =
+        '<div class="empty-state">UZUPEŁNIJ SUPABASE_URL I SUPABASE_ANON_KEY NA GÓRZE PLIKU HTML</div>';
+      ustawStatus(false);
+      return;
+    }
+
+    client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    pobierzDane();
+    setInterval(pobierzDane, ODSWIEZANIE_MS);
+
+    client
+      .channel('signals-live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: TABLE_NAME }, () => { pobierzDane(); })
+      .subscribe();
+  }
+
+  zegarek();
+  inicjalizuj();
+
+  // Rejestracja Service Workera - umożliwia "instalację" strony jako aplikacji
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((e) => console.error('SW error:', e));
+    });
+  }
+</script>
+</body>
+</html>
