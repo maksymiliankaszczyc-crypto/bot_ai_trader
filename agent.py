@@ -32,7 +32,7 @@ groq_client = Groq(api_key=GROQ_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 kraken = ccxt.kraken()
 
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 OPOZNIENIE_GROQ = float(os.environ.get("OPOZNIENIE_GROQ", "1.2"))
 OPOZNIENIE_YFINANCE = float(os.environ.get("OPOZNIENIE_YFINANCE", "0.5"))
 MAX_PROBY_GROQ = 3
@@ -88,7 +88,7 @@ OBV_SMA_OKRES = 20
 MIN_SWIEC = max(EMA_WOLNA_OKRES, ADX_OKRES, BOLLINGER_OKRES) + 20
 
 # Próg "technical score" (0-100) poniżej którego walor NIE trafia do AI.
-PROG_TECHNICZNY = int(os.environ.get("PROG_TECHNICZNY", "55"))
+PROG_TECHNICZNY = int(os.environ.get("PROG_TECHNICZNY", "62"))
 
 # Próg pewności AI (0-100), od którego generujemy sygnał KUP
 PROG_PEWNOSCI_AI = int(os.environ.get("PROG_PEWNOSCI_AI", "80"))
@@ -97,16 +97,33 @@ PROG_PEWNOSCI_AI = int(os.environ.get("PROG_PEWNOSCI_AI", "80"))
 # 3. LISTY WALORÓW DO SKANOWANIA
 # ==========================================
 LISTA_AKCJI = [
+    # Big Tech / Semiconductory
     "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AMD", "INTC", "PLTR",
-    "NFLX", "COIN", "DIS", "BA", "BAC", "JPM", "V", "MA", "PYPL", "ORCL",
-    "U", "HOOD", "RBLX", "SHOP", "NET", "SNOW", "SPOT", "UBER", "ABNB", "MARA",
-    "RIOT", "CLSK", "MSTR", "GLD", "SLV", "USO", "UNG", "QQQ", "SPY", "IWM"
+    "TSM", "ASML", "AVGO", "QCOM", "MU", "ARM", "SMCI", "TXN",
+    # Software / Cloud / SaaS
+    "NFLX", "CRM", "ADBE", "NOW", "DDOG", "CRWD", "PANW", "SNOW", "NET",
+    # Fintech / Płatności / Finanse
+    "COIN", "PYPL", "V", "MA", "JPM", "BAC", "GS", "MS", "SCHW", "AXP",
+    # E-commerce / Konsument
+    "SHOP", "UBER", "ABNB", "SPOT", "WMT", "COST", "NKE", "SBUX", "HD",
+    # Zdrowie / Farmacja
+    "LLY", "UNH", "JNJ", "PFE", "ABBV",
+    # Motoryzacja / EV
+    "F", "GM", "RIVN",
+    # Przemysł / Energia
+    "XOM", "CVX", "CAT", "BA", "LMT", "DIS",
+    # Spekulacyjne / Momentum
+    "U", "HOOD", "RBLX", "MARA", "RIOT", "CLSK", "MSTR",
+    # ETF-y surowcowe i indeksowe
+    "GLD", "SLV", "USO", "UNG", "QQQ", "SPY", "IWM", "DIA", "ARKK", "XLF", "XLK", "XLE",
 ]
 
 LISTA_KRYPTO = [
     "BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "ADA/USD", "DOGE/USD", "AVAX/USD",
     "LINK/USD", "DOT/USD", "SUI/USD", "NEAR/USD", "APT/USD", "LTC/USD", "BCH/USD",
-    "UNI/USD", "ATOM/USD", "POL/USD", "FIL/USD", "SHIB/USD", "PEPE/USD", "FET/USD"
+    "UNI/USD", "ATOM/USD", "POL/USD", "FIL/USD", "SHIB/USD", "PEPE/USD", "FET/USD",
+    "ETC/USD", "ALGO/USD", "AAVE/USD", "MKR/USD", "GRT/USD", "SAND/USD", "MANA/USD",
+    "XLM/USD", "XTZ/USD", "EOS/USD", "TIA/USD", "INJ/USD", "RUNE/USD",
 ]
 
 # ==========================================
