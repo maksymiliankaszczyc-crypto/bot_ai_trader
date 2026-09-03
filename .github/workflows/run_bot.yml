@@ -2,7 +2,7 @@ name: Run AI Bot
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Co 30 minut
+    - cron: '*/2 * * * *' # Co 30 minut
   workflow_dispatch: # Przycisk do ręcznego uruchomienia
 
 jobs:
